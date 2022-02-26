@@ -1,11 +1,36 @@
 #include "List.h"
 
+List::List(int value, ...) {
+    va_list vl;
+    va_start(vl, value);
+    for (auto i = 0; i < value; i++)
+        pushBack(va_arg(vl, int));
+    va_end(vl);
+}
+List::List(const List& that) {
+    if (that.isEmpty()) {
+        this->head_ = this->tail_ = nullptr;
+        return;
+    }
+    Item* temp = that.head_;
+    do this->pushBack(temp->data), temp = temp->next;
+    while (temp != that.head_);
+}
+
+void List::random(int size = 10, int min = -100, int max = 100) {
+    clear();
+    srand(time(NULL));
+    size = rand() * (size + 1);
+    for (auto i = 0; i < size; i++)
+        pushBack(rand() * (max - min + 1) + min);
+}
 int  List::size() const {
+    if (isEmpty()) return 0;
     Item* temp = head_;
     int size = 0;
-    while (temp != tail_)
-        size++, temp = temp->next;
-    return ++size;
+    do size++, temp = temp->next;
+    while (temp != head_);
+    return size;
 }
 bool List::isEmpty() const {
 	return !((bool)head_);
@@ -62,13 +87,13 @@ int  List::back() const {
 }
 int* List::getArray() const {
     int* array = nullptr;
+    if (isEmpty()) return array;
     try {
         array = new int[size()];
         Item* temp = head_;
         auto counter = 0;
-        while (temp != tail_)
-            array[counter++] = temp->data, temp = temp->next;
-        array[counter++] = temp->data;
+        do array[counter++] = temp->data, temp = temp->next;
+        while (temp != head_);
     }
     catch (const std::bad_alloc& e) {
         std::cout << "Error: " << e.what() << std::endl;
@@ -81,6 +106,7 @@ void List::clear() {
         head_ = temp->next;
         delete temp;
     }
+    head_ = nullptr, tail_ = nullptr;
 }
 
 std::ostream& operator<< (std::ostream& out, const List& list) {
@@ -89,3 +115,53 @@ std::ostream& operator<< (std::ostream& out, const List& list) {
         out << array[i] << " ";
     return out;
 }
+
+List& List::operator++() {
+    pushFront(0);
+    return *this;
+}
+List& List::operator--() {
+    popFront();
+    return *this;
+}
+List& List::operator++(int) {
+    pushBack(0);
+    return *this;
+}
+List& List::operator--(int) {
+    popBack();
+    return *this;
+}
+
+List& List::operator= (const List& that) {
+    this->clear();
+    if (that.isEmpty()) {
+        this->head_ = this->tail_ = nullptr;
+        return *this;
+    }
+    Item* temp = that.head_;
+    do this->pushBack(temp->data), temp = temp->next;
+    while (temp != that.head_);
+    return *this;
+}
+//List operator+ (const List& l1, const List& l2) {
+//    if (l1.isEmpty()) return l2;
+//    if (l2.isEmpty()) return l1;
+//    List list;
+//    Item* temp1 = l1.head_, * temp2 = l2.head_;
+//    do {
+//        list.pushBack(temp1->data + temp2->data);
+//        temp1 = temp1->next, temp2 = temp2->next;
+//    }
+//    while (temp1 != l1.head_ || temp2 != l2.head_);
+//    return list;
+//}
+//List operator- (const List& l1, const List& l2) {
+//
+//}
+//List operator* (const List& l1, const List& l2) {
+//
+//}
+//List operator/ (const List& l1, const List& l2) {
+//
+//}
