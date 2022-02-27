@@ -3,6 +3,7 @@
 List::List(int value, ...) {
     if (value < 1)
         throw new std::exception("Error: The first parameter when calling this constructor must be positive!");
+    this->head_ = this->tail_ = nullptr;
     va_list vl;
     va_start(vl, value);
     for (auto i = 0; i < value; i++)
@@ -10,12 +11,13 @@ List::List(int value, ...) {
     va_end(vl);
 }
 List::List(const List& that) {
-    if (that.isEmpty()) {
-        this->head_ = this->tail_ = nullptr;
-        return;
-    }
+    this->head_ = this->tail_ = nullptr;
+    if (that.isEmpty()) return;
     Item* temp = that.head_;
-    do this->pushBack(temp->data), temp = temp->next;
+    do {
+        this->pushBack(temp->data);
+        temp = temp->next;
+    }
     while (temp != that.head_);
 }
 
@@ -139,10 +141,44 @@ void List::clear() {
     }
 }
 
+std::istream& operator>> (std::istream& in, List& list) {
+    std::string where;
+    while (where.empty()) {
+        system("cls");
+        std::cout << "Куда хотите добавить эелемент\n";
+        std::cout << " 1 – в начало списка\n";
+        std::cout << " 2 – в конец списка\n";
+        std::cout << "\n > ";
+
+        std::cin >> where;
+        if (where[0] == '1') {
+            system("cls");
+            std::cout << "Введите значение для добавления в начало списка: ";
+            int value;
+            in >> value;
+            list.pushFront(value);
+            system("cls");
+        }
+        else if (where[0] == '2') {
+            system("cls");
+            std::cout << "Введите значение для добавления в конец списка: ";
+            int value;
+            std::cin >> value;
+            list.pushBack(value);
+            system("cls");
+        }
+        else {
+            std::cout << "\n Что-то не то . . .\n Попробуйте еще раз\n ";
+            system("pause");
+            where.clear();
+        }
+    }
+    return in;
+}
 std::ostream& operator<< (std::ostream& out, const List& list) {
     int* array = list.getArray();
     if (!array) {
-        std::cout << std::endl;
+        out << std::endl;
         return out;
     }
     int size = list.size();
@@ -152,7 +188,11 @@ std::ostream& operator<< (std::ostream& out, const List& list) {
 }
 
 List& List::operator++() {
-    pushFront(0);
+    std::cout << "Введите значение для добавления в начало списка: ";
+    int in;
+    std::cin >> in;
+    pushFront(in);
+    system("cls");
     return *this;
 }
 List& List::operator--() {
@@ -160,7 +200,11 @@ List& List::operator--() {
     return *this;
 }
 List& List::operator++(int) {
-    pushBack(0);
+    std::cout << "Введите значение для добавления в конец списка: ";
+    int in;
+    std::cin >> in;
+    pushBack(in);
+    system("cls");
     return *this;
 }
 List& List::operator--(int) {
@@ -168,7 +212,36 @@ List& List::operator--(int) {
     return *this;
 }
 
+List List::operator()(int begin, int end) {
+    List list;
+    if (isEmpty())
+        throw new std::exception("Error: The list is empty!");
+    if (begin < 0 || end < 0 || begin > end)
+        throw new std::exception("Error: Both parameters must be positive when calling operator() overload!");
+    if (begin > this->size() - 1)
+        return list;
+    Item* ptr = this->head_;
+    for (auto counter = 0; counter <= end; counter++) {
+        if (counter >= begin && counter < this->size()) list.pushBack(ptr->data);
+        ptr = ptr->next;
+    }
+    return list;
+}
+int List::operator[](int index) {
+    if (isEmpty())
+        throw new std::exception("Error: The list is empty!");
+    if (index < 0)
+        throw new std::exception("Error: The index parameter must not be negative!");
+    if (index > this->size() - 1)
+        throw new std::exception("Error: The index parameter is larger than the list size!");
+    Item* ptr = this->head_;
+    for (auto counter = 0; counter < index; counter++)
+        ptr = ptr->next;
+    return ptr->data;
+}
+
 List& List::operator= (const List& that) {
+    if (this == &that) return *this;
     this->clear();
     if (that.isEmpty()) {
         this->head_ = this->tail_ = nullptr;
@@ -180,23 +253,46 @@ List& List::operator= (const List& that) {
     return *this;
 }
 List operator+ (const List& l1, const List& l2) {
-    if (l1.isEmpty()) return l2;
-    if (l2.isEmpty()) return l1;
     List list;
-    Item* temp1 = l1.head_, * temp2 = l2.head_;
+    if (l1.isEmpty() || l2.isEmpty()) return list;
+    Item* ptr1 = l1.head_, * ptr2 = l2.head_;
+    Item* start = l1.size() > l2.size() ? l2.head_ : l1.head_;
     do {
-        list.pushBack(temp1->data + temp2->data);
-        temp1 = temp1->next, temp2 = temp2->next;
-    }
-    while (temp1 != l1.head_ || temp2 != l2.head_);
+        list.pushBack(ptr1->data + ptr2->data);
+        ptr1 = ptr1->next, ptr2 = ptr2->next;
+    } while (ptr1 != start && ptr2 != start);
     return list;
 }
-//List operator- (const List& l1, const List& l2) {
-//
-//}
-//List operator* (const List& l1, const List& l2) {
-//
-//}
-//List operator/ (const List& l1, const List& l2) {
-//
-//}
+List operator- (const List& l1, const List& l2) {
+    List list;
+    if (l1.isEmpty() || l2.isEmpty()) return list;
+    Item* ptr1 = l1.head_, * ptr2 = l2.head_;
+    Item* start = l1.size() > l2.size() ? l2.head_ : l1.head_;
+    do {
+        list.pushBack(ptr1->data - ptr2->data);
+        ptr1 = ptr1->next, ptr2 = ptr2->next;
+    } while (ptr1 != start && ptr2 != start);
+    return list;
+}
+List operator* (const List& l1, const List& l2) {
+    List list;
+    if (l1.isEmpty() || l2.isEmpty()) return list;
+    Item* ptr1 = l1.head_, * ptr2 = l2.head_;
+    Item* start = l1.size() > l2.size() ? l2.head_ : l1.head_;
+    do {
+        list.pushBack(ptr1->data * ptr2->data);
+        ptr1 = ptr1->next, ptr2 = ptr2->next;
+    } while (ptr1 != start && ptr2 != start);
+    return list;
+}
+List operator/ (const List& l1, const List& l2) {
+    List list;
+    if (l1.isEmpty() || l2.isEmpty()) return list;
+    Item* ptr1 = l1.head_, * ptr2 = l2.head_;
+    Item* start = l1.size() > l2.size() ? l2.head_ : l1.head_;
+    do {
+        list.pushBack(ptr1->data / ptr2->data);
+        ptr1 = ptr1->next, ptr2 = ptr2->next;
+    } while (ptr1 != start && ptr2 != start);
+    return list;
+}
