@@ -178,7 +178,7 @@ std::istream& operator>> (std::istream& in, List& list) {
 std::ostream& operator<< (std::ostream& out, const List& list) {
     int* array = list.getArray();
     if (!array) {
-        out << std::endl;
+        out << "Список пуст";
         return out;
     }
     int size = list.size();
@@ -192,7 +192,6 @@ List& List::operator++() {
     int in;
     std::cin >> in;
     pushFront(in);
-    system("cls");
     return *this;
 }
 List& List::operator--() {
@@ -204,7 +203,6 @@ List& List::operator++(int) {
     int in;
     std::cin >> in;
     pushBack(in);
-    system("cls");
     return *this;
 }
 List& List::operator--(int) {
